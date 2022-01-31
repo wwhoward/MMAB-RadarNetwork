@@ -48,14 +48,14 @@ classdef Follower < handle
         
         function action = play(obj, varargin)
             action = 0; 
-            if length(obj.Followee.Strategy{1}.Acts)>1
-                action = obj.Followee.Strategy{1}.Acts(end-1); 
+            if obj.T > 1
+                action = obj.Followee.Strategy{1}.Acts(obj.T-1); 
                 % obj.myNode.Strategy{2}{action}.whatToPlay = obj.Followee.Strategy{2}{action}.Acts(end-1); 
                 obj.myNode.Strategy{2}{action}.whatToPlay = obj.Followee.Acts(end,2); 
             end
             
             
-            
+            obj.T = obj.T+1;
             obj.Acts(end+1) = action; 
             obj.lastAction = action; 
         end

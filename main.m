@@ -1,4 +1,5 @@
 clc;clear;close all
+restoredefaultpath
 addpath('classes', 'Strategies', 'Strategies/helper'); 
 
 runs_to_average = 2; 

@@ -33,7 +33,8 @@ classdef RadarNetwork < handle
         RegretHistory = [] % History of regret as observed by the network
         CumulativeRegret = [] % Accumulated regret of each node at each time step
         
-        
+        BandActionHistory = {} % History of band selection
+        WaveformActionHistory = {} % History of waveform selection
         
         
     end
@@ -41,36 +42,36 @@ classdef RadarNetwork < handle
     methods
         function obj = RadarNetwork(nNodes, positions, strategy, nActions, varargin)
             %RADARNETWORK Construct an instance of this class
+            if nargin ~= 0
+                obj.nNodes = nNodes; 
+                obj.Positions = positions; 
 
-            obj.nNodes = nNodes; 
-            obj.Positions = positions; 
-            
-            if any(strcmp(varargin, 'n_pri'))
-                obj.n_pri = varargin{find(strcmp(varargin, 'n_pri')==1)+1};
-            end
-            if any(strcmp(varargin, 'n_cpi'))
-                obj.n_cpi = varargin{find(strcmp(varargin, 'n_cpi')==1)+1};
-            end            
-            obj.Strategy = strat_assign(strategy, nActions, nNodes, varargin); %'n_pri', n_pri, 'n_cpi', n_cpi); 
-            
-            obj.Actions = zeros([nActions(1), nActions(2), 2]); 
-            for b = 1:nActions(1)
-                for w = 1:nActions(2)
-                    obj.Actions(b, w, :) = [b,w]; 
+                if any(strcmp(varargin, 'n_pri'))
+                    obj.n_pri = varargin{find(strcmp(varargin, 'n_pri')==1)+1};
                 end
+                if any(strcmp(varargin, 'n_cpi'))
+                    obj.n_cpi = varargin{find(strcmp(varargin, 'n_cpi')==1)+1};
+                end            
+                obj.Strategy = strat_assign(strategy, nActions, nNodes, varargin); %'n_pri', n_pri, 'n_cpi', n_cpi); 
+
+                obj.Actions = zeros([nActions(1), nActions(2), 2]); 
+                for b = 1:nActions(1)
+                    for w = 1:nActions(2)
+                        obj.Actions(b, w, :) = [b,w]; 
+                    end
+                end
+
+                obj.ActionHistory = zeros([nNodes,0]);
+
+                for n = 1:nNodes
+                    obj.Nodes{n} = node({obj.Strategy{:,n}}, nNodes, positions(n,:), nActions, obj.n_pri, obj.pri);                 
+                end
+
+
+                % Filtering stuff
+                % cstates = zeros(0, obj.nNodes, 4);
+                obj.initialize_kf(); 
             end
-            
-            obj.ActionHistory = zeros([nNodes,0]);
-            
-            for n = 1:nNodes
-                obj.Nodes{n} = node({obj.Strategy{:,n}}, nNodes, positions(n,:), nActions, obj.n_pri, obj.pri);                 
-            end
-            
-            
-            % Filtering stuff
-            % cstates = zeros(0, obj.nNodes, 4);
-            obj.initialize_kf(); 
-            
         end
         
         % PRI Functions
@@ -80,6 +81,8 @@ classdef RadarNetwork < handle
                 CurrentActs(n,:) = obj.Nodes{n}.singlePRI(target); 
             end            
             obj.ActionHistory{end+1} = CurrentActs; 
+            obj.BandActionHistory{end+1} = CurrentActs(:,1); 
+            obj.WaveformActionHistory{end+1} = CurrentActs(:,2); 
         end
         
         function pri_receive(obj, rews)            

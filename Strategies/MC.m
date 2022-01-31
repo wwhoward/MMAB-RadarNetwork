@@ -33,6 +33,7 @@ classdef MC < handle
         fixed
         bestM
         delta = 0.1
+        epsilon = 0.4 % Pre-known lower bound on expected reward gap
         B
         t
         M % estimate of n_players
@@ -48,7 +49,9 @@ classdef MC < handle
             obj.t = 0; 
             obj.B = inf*ones([n_actions, 1]); 
             obj.M = 1; 
-            obj.T0 = 1000; 
+            % obj.T0 = 1000; 
+            obj.T0 = ceil(max(((16*obj.n_players)/obj.epsilon^2)*log(4*obj.n_players^2/obj.delta), ...
+                                (obj.n_players^2 * log(4/obj.delta))/0.02)); 
             obj.phase = "exploration"; 
             obj.fixed = -1; 
             obj.bestM = []; 
