@@ -28,7 +28,7 @@ classdef eDecaying < handle
         T = 1
         
         % Unique
-        epsilon_f = @(x) 1./(x.^3)
+        epsilon_f = @(x) 1./(x.^0.8)
     end
     
     methods
